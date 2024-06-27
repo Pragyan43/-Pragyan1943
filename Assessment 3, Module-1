@@ -1,0 +1,78 @@
+// Smart Contract Project //
+// For this project, write a smart contract that implements the require(), assert() and revert() statements.
+// Functionality:
+// Contract successfully uses require()
+// Contract successfully uses assert()
+// Contract successfully uses revert() statements //
+
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.13;
+
+contract VotingSystem {
+    
+    address public owner;
+    bool public electionFinalized;
+    mapping(address => bool) public hasVoted;
+    mapping(string => uint256) public votes;
+
+    event VoteCast(address indexed voter, string candidate);
+    event ElectionFinalized();
+
+    constructor() {
+        owner = msg.sender;
+        electionFinalized = false;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Caller is not the owner");
+        _;
+    }
+
+    modifier notFinalized() {
+        require(!electionFinalized, "Election has been finalized");
+        _;
+    }
+
+    function vote(string memory candidate) public notFinalized {
+        require(!hasVoted[msg.sender], "You have already voted");
+        votes[candidate]++;
+        hasVoted[msg.sender] = true;
+        emit VoteCast(msg.sender, candidate);
+    }
+
+    function finalizeElection() public onlyOwner {
+        electionFinalized = true;
+        emit ElectionFinalized();
+    }
+
+    function getVoteCount(string memory candidate) public view returns (uint256) {
+        return votes[candidate];
+    }
+
+    function checkInvariants() public view {
+        
+        if (electionFinalized) {
+            assert(hasVotes());
+        }
+    }
+
+    function hasVotes() internal view returns (bool) {
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (votes[candidates[i]] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function invalidFunction() public pure {
+        revert("This function is invalid");
+    }
+
+    string[] public candidates;
+
+    function addCandidate(string memory candidate) public onlyOwner notFinalized {
+        candidates.push(candidate);
+    }
+}
